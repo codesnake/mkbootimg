@@ -19,19 +19,19 @@ static:libmincrypt.a mkbootimg-static$(EXE) unpackbootimg-static$(EXE)
 libmincrypt.a:
 	make -C libmincrypt
 
-mkbootimg$(EXE):mkbootimg.o
+mkbootimg$(EXE):mkbootimg.o libmincrypt.a
 	$(CROSS_COMPILE)$(CC) -o $@ $^ -L. -lmincrypt $(LDFLAGS) -s
 
-mkbootimg-static$(EXE):mkbootimg.o
+mkbootimg-static$(EXE):mkbootimg.o libmincrypt.a
 	$(CROSS_COMPILE)$(CC) -o $@ $^ -L. -lmincrypt $(LDFLAGS) -static -s
 
 mkbootimg.o:mkbootimg.c
 	$(CROSS_COMPILE)$(CC) -o $@ $(CFLAGS) -c $< -I. -Werror
 
-unpackbootimg$(EXE):unpackbootimg.o
+unpackbootimg$(EXE):unpackbootimg.o libmincrypt.a
 	$(CROSS_COMPILE)$(CC) -o $@ $^ $(LDFLAGS) -s
 
-unpackbootimg-static$(EXE):unpackbootimg.o
+unpackbootimg-static$(EXE):unpackbootimg.o libmincrypt.a
 	$(CROSS_COMPILE)$(CC) -o $@ $^ $(LDFLAGS) -static -s
 
 unpackbootimg.o:unpackbootimg.c
