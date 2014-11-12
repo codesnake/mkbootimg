@@ -25,7 +25,7 @@ int read_padding(FILE* f, unsigned itemsize, int pagesize)
     
     count = pagesize - (itemsize & pagemask);
     
-    fread(buf, count, 1, f);
+    count = fread(buf, count, 1, f);
     free(buf);
     return count;
 }
@@ -84,7 +84,10 @@ int main(int argc, char** argv)
     int i;
     for (i = 0; i <= 512; i++) {
         fseek(f, i, SEEK_SET);
-        fread(tmp, BOOT_MAGIC_SIZE, 1, f);
+        if (fread(tmp, BOOT_MAGIC_SIZE, 1, f) != BOOT_MAGIC_SIZE) {
+            printf("Couldn't read the magic record.\n");
+            return 1;
+        }
         if (memcmp(tmp, BOOT_MAGIC, BOOT_MAGIC_SIZE) == 0)
             break;
     }
@@ -96,7 +99,10 @@ int main(int argc, char** argv)
     fseek(f, i, SEEK_SET);
     //printf("Android magic found at: %d\n", i);
     
-    fread(&header, sizeof(header), 1, f);
+    if (fread(&header, sizeof(header), 1, f) != sizeof(header)) {
+        printf("Couldn't read the header.\n");
+        return 1;
+    }
     base = header.kernel_addr - 0x00008000;
     printf("BOARD_KERNEL_CMDLINE %s\n", header.cmdline);
     printf("BOARD_KERNEL_BASE %08x\n", base);
@@ -179,7 +185,10 @@ int main(int argc, char** argv)
     FILE *k = fopen(tmp, "wb");
     byte* kernel = (byte*)malloc(header.kernel_size);
     //printf("Reading kernel...\n");
-    fread(kernel, header.kernel_size, 1, f);
+    if (fread(kernel, header.kernel_size, 1, f) != header.kernel_size) {
+        printf("Couldn't read the kernel image.\n");
+        return 1;
+    }
     total_read += header.kernel_size;
     fwrite(kernel, header.kernel_size, 1, k);
     fclose(k);
@@ -192,7 +201,10 @@ int main(int argc, char** argv)
     FILE *r = fopen(tmp, "wb");
     byte* ramdisk = (byte*)malloc(header.ramdisk_size);
     //printf("Reading ramdisk...\n");
-    fread(ramdisk, header.ramdisk_size, 1, f);
+    if (fread(ramdisk, header.ramdisk_size, 1, f) != header.ramdisk_size) {
+        printf("Couldn't read the ramdisk image.\n");
+        return 1;
+    }
     total_read += header.ramdisk_size;
     fwrite(ramdisk, header.ramdisk_size, 1, r);
     fclose(r);
@@ -206,7 +218,10 @@ int main(int argc, char** argv)
         FILE *s = fopen(tmp, "wb");
         byte* second = (byte*)malloc(header.second_size);
         //printf("Reading second...\n");
-        fread(second, header.second_size, 1, f);
+        if (fread(second, header.second_size, 1, f) != header.second_size) {
+            printf("Couldn't read the second image.\n");
+            return 1;
+        }
         total_read += header.second_size;
         fwrite(second, header.second_size, 1, s);
         fclose(s);
@@ -221,7 +236,10 @@ int main(int argc, char** argv)
         FILE *d = fopen(tmp, "wb");
         byte* dtb = (byte*)malloc(header.dt_size);
         //printf("Reading dtb...\n");
-        fread(dtb, header.dt_size, 1, f);
+        if (fread(dtb, header.dt_size, 1, f) != header.dt_size) {
+            printf("Couldn't read the device tree.\n");
+            return 1;
+        }
         total_read += header.dt_size;
         fwrite(dtb, header.dt_size, 1, d);
         fclose(d);
